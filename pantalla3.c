@@ -9,74 +9,24 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include "biblioteca/funjs.h"
 
 #define XMAX 1280
 #define YMAX 720
 
+char* normalize( char* str ){
+  
+}
 
-void sort(int *array, int length)
-{
-  for(int j = 0; j < length; j++){
-    for(int i = j; i < length; i++)
-    if(array[i] < array[j]){
-      array[j] = array[i] ^ array[j];
-      array[i] = array[i] ^ array[j];
-      array[j] = array[i] ^ array[j];
+int includesc(char* str, char** array, int length){
+  int indice;
+  for(int i = 0; i < length; i++){
+    if(strcmp(lower(str), lower(array[i])) == 0){
+      indice = i;
+      return indice;
     }
   }
-}
-
-void desorden(int *array, int length)
-{
-  int aleatorio;
-  for(int i = length - 1; i > 0; i--){
-    aleatorio = rand() % i ;
-    array[i] = array[aleatorio] ^ array[i];
-    array[aleatorio] = array[aleatorio] ^ array[i];
-    array[i] = array[aleatorio] ^ array[i];
-  }
-}
-
-char* mstrdup(char* s){
-  char* copy = malloc(strlen(s) + 1);
-  if(copy != NULL)
-    strcpy(copy, s);
-  return copy;
-}
-
-char* scanif(FILE *docu)
-{
-  char* str = malloc(sizeof(char));
-  int n = 0;
-  while((str[n] = fgetc(docu)) != '\n' && str[n] != EOF){
-    n++;
-    char* temp = realloc(str, n + 1);
-    if(temp == NULL){
-      free(str);
-      printf("\nError de memoria");
-      return NULL;
-    }
-    str = temp;
-  }
-  str[n] = '\0';
-  return str;
-}
-
-char** split(char str[], char lim[], int *nPalabras)
-{
-  char* str2 = strdup(str);
-  char** array = malloc(sizeof(char*) * 2);
-  *nPalabras = 0;
-
-  char *token = strtok(str2, lim);
-  while (token != NULL) {
-    array[*nPalabras] = mstrdup(token);
-    (*nPalabras)++;
-    array = realloc(array, sizeof(char*) * (*nPalabras + 1));
-    token = strtok(NULL, lim);
-  }
-  free(str2);
-  return array;
+  return -1;
 }
 
 char **obtienePalabras(int opc, int *palabrasn){
@@ -128,31 +78,19 @@ char **obtienePalabras(int opc, int *palabrasn){
   free(stemp);
   return palabras;
 }
-//Busca una string especifica en un arreglo de strings. Requiere como primer parametro la string a buscar, el segundo
-//parametro es donde la busca y el ultimo parametro es la medida del arreglo donde se buscara la string.
-//Devuelve la posicion en el arreglo donde aparece la string buscada, si no esta devuelve -1. Solo devuelve la primera aparicion
-int includesc(char* str, char** array, int length){
-  int indice;
-  for(int i = 0; i < length; i++){
-    if(strcmp(str, array[i]) == 0){
-      indice = i;
-      return indice;
-    }
-  }
-  return 0;
-}
-void pantalla4(ALLEGRO_FONT *font, ALLEGRO_BITMAP *background, char* respuesta, char** respuestas, int palabras){
-  int y = (YMAX - 100) / (palabras + 1);
+
+void pantalla4(ALLEGRO_FONT *font, ALLEGRO_BITMAP *background, char* respuesta, char** respuestas, int palabras, int palabrasn){
+  int y = (YMAX - 100) / (palabrasn + 1);
   al_clear_to_color(al_map_rgb(255, 255, 255));
   al_draw_bitmap(background, 0, 0, 0);
   al_draw_filled_rectangle(0, 620, 1280, 720, al_map_rgb(0, 0, 0));
-  al_draw_text(font, al_map_rgb(255, 255, 255), 640, 695, ALLEGRO_ALIGN_CENTER, respuesta);
+  al_draw_text(font, al_map_rgb(255, 255, 255), 640, 645, ALLEGRO_ALIGN_CENTER, respuesta);
   //Conforme mas adivines, se proyectan las respuestas.
   for(int i = 0; i < palabras; i++){
-    if(i <= palabras / 2)
+    if(i < palabras / 2)//<=
       al_draw_text(font, al_map_rgb(0, 0, 0), 50, y+(y*i*2), ALLEGRO_ALIGN_LEFT, respuestas[i]);
     else
-      al_draw_text(font, al_map_rgb(0, 0, 0), 1230, y+(y*i), ALLEGRO_ALIGN_RIGHT, respuestas[i]);
+      al_draw_text(font, al_map_rgb(0, 0, 0), 1230, y+(y*2*(i - palabras / 2)), ALLEGRO_ALIGN_RIGHT, respuestas[i]);
   }
   al_flip_display();
 }
@@ -185,7 +123,7 @@ int main()
   ALLEGRO_BITMAP *portada, *assets, *background;
   ALLEGRO_TIMER *tempo;
 
-  int pantalla = 4;
+  int pantalla = 3;
 
   srand(time(NULL));
 
@@ -202,12 +140,12 @@ int main()
   al_register_event_source(eventos, al_get_display_event_source(disp));
   al_register_event_source(eventos, al_get_keyboard_event_source());
   
-  int dificultad = 3, cantidadPalabras;
+  int dificultad = 1, cantidadPalabras;
   char **palabras;
   palabras = obtienePalabras(dificultad, &cantidadPalabras);
   // A partir de aqui copiar al codigo original
   int palabra = 0;
-  /*tempo = al_create_timer(1.0/dificultad); //Si esta muy facil puede ser al_create_timer(1/ pow(2, dificultad - 1));
+  tempo = al_create_timer(1.0/dificultad); //Si esta muy facil puede ser al_create_timer(1/ pow(2, dificultad - 1));
   al_register_event_source(eventos, al_get_timer_event_source(tempo));
   al_start_timer(tempo);
   while (pantalla == 3)
@@ -226,30 +164,35 @@ int main()
         pantalla = 4;
       }
     }
-  }*/
+  }
+  for(int i = 0; i < cantidadPalabras; i++)//------------------------------------------------------------------------------
+    printf("%s \n", palabras[i]);
   background = al_load_bitmap("statics/img/tragamonedas.png");
   char respuesta[21], **respuestas = NULL;
   int cantidadLetras = 0, letra, palabrasEncontradas = 0, try = 0;
   respuesta[0] = '\0';
   while(pantalla == 4){
-    pantalla4(fuenteRespuesta, background, respuesta, respuestas, palabrasEncontradas);
+    pantalla4(fuenteRespuesta, background, respuesta, respuestas, palabrasEncontradas, cantidadPalabras);
 
     al_wait_for_event(eventos, &evento);
+    if(try == cantidadPalabras){
+      pantalla = 5;
+      al_rest(1);
+    }
     if(evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
       pantalla = 0;
-    if(evento.type == ALLEGRO_EVENT_KEY_CHAR && cantidadLetras <= 20){
+    if(evento.type == ALLEGRO_EVENT_KEY_CHAR){
       letra = evento.keyboard.unichar;
-      printf("%i %i %s\n", cantidadLetras, evento.keyboard.keycode, respuesta);
-      if(isalpha(letra) != 0){
+      if(isalpha(letra) != 0 && cantidadLetras <= 20){
         respuesta[cantidadLetras] = letra;
         respuesta[cantidadLetras + 1] = '\0';
         cantidadLetras++;
       }
-      if(letra == ALLEGRO_KEY_BACKSPACE && cantidadLetras > 0){
+      if(evento.keyboard.keycode == ALLEGRO_KEY_BACKSPACE && cantidadLetras > 0){
         respuesta[cantidadLetras - 1] = '\0';
         cantidadLetras--;
       }
-      if(letra == ALLEGRO_KEY_ENTER && cantidadLetras > 0){
+      if(evento.keyboard.keycode == ALLEGRO_KEY_ENTER && cantidadLetras > 0){
         try++;
         if(includesc(respuesta, palabras, cantidadPalabras) != -1){
           respuestas = realloc(respuestas, sizeof(char*) * (palabrasEncontradas+1)); 
@@ -263,9 +206,6 @@ int main()
         respuesta[0] = '\0';
         cantidadLetras = 0;
       }
-    }
-    if(try == cantidadPalabras){
-      pantalla = 5;
     }
   }
   for(int i = 0; i < cantidadPalabras; i++)

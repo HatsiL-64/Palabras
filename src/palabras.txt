@@ -2,7 +2,7 @@ Pixel
 Byte
 Memoria
 Monitor
-Disco_Duro
+Disco Duro
 Windows
 Linux
 Directorio

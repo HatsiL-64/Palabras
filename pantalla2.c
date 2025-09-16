@@ -211,6 +211,8 @@ int main()
   }
   palabras = obtienePalabras(dificultad, &cantidadPalabras);
 
+  
+  
   for(int i = 0; i < cantidadPalabras; i++)
     free(palabras[i]);
   free(palabras);
