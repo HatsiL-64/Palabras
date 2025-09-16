@@ -81,11 +81,11 @@ char** split(char str[], char lim[], int *nPalabras)
 
 char **obtienePalabras(int opc, int *palabrasn){
   if(opc == 1)
-    *palabrasn = 5;
+    *palabrasn = 6;
   if(opc == 2)
     *palabrasn = 8;
   if(opc == 3)
-    *palabrasn = 11;
+    *palabrasn = 12;
 
   char temp, *stemp;
   int nLineas = 0, *indice;
@@ -141,6 +141,22 @@ int includesc(char* str, char** array, int length){
   }
   return 0;
 }
+void pantalla4(ALLEGRO_FONT *font, ALLEGRO_BITMAP *background, char* respuesta, char** respuestas, int palabras){
+  int y = (YMAX - 100) / (palabras + 1);
+  al_clear_to_color(al_map_rgb(255, 255, 255));
+  al_draw_bitmap(background, 0, 0, 0);
+  al_draw_filled_rectangle(0, 620, 1280, 720, al_map_rgb(0, 0, 0));
+  al_draw_text(font, al_map_rgb(255, 255, 255), 640, 695, ALLEGRO_ALIGN_CENTER, respuesta);
+  //Conforme mas adivines, se proyectan las respuestas.
+  for(int i = 0; i < palabras; i++){
+    if(i <= palabras / 2)
+      al_draw_text(font, al_map_rgb(0, 0, 0), 50, y+(y*i*2), ALLEGRO_ALIGN_LEFT, respuestas[i]);
+    else
+      al_draw_text(font, al_map_rgb(0, 0, 0), 1230, y+(y*i), ALLEGRO_ALIGN_RIGHT, respuestas[i]);
+  }
+  al_flip_display();
+}
+
 int main()
 {
   if(!al_init()){
@@ -169,7 +185,7 @@ int main()
   ALLEGRO_BITMAP *portada, *assets, *background;
   ALLEGRO_TIMER *tempo;
 
-  int pantalla = 3;
+  int pantalla = 4;
 
   srand(time(NULL));
 
@@ -191,7 +207,7 @@ int main()
   palabras = obtienePalabras(dificultad, &cantidadPalabras);
   // A partir de aqui copiar al codigo original
   int palabra = 0;
-  tempo = al_create_timer(1.0/dificultad); //Si esta muy facil puede ser al_create_timer(1/ pow(2, dificultad - 1));
+  /*tempo = al_create_timer(1.0/dificultad); //Si esta muy facil puede ser al_create_timer(1/ pow(2, dificultad - 1));
   al_register_event_source(eventos, al_get_timer_event_source(tempo));
   al_start_timer(tempo);
   while (pantalla == 3)
@@ -210,19 +226,20 @@ int main()
         pantalla = 4;
       }
     }
-  }
-  char respuesta[21];
-  int cantidadLetras = 0, letra, tempi, *indiceEncontradas = NULL, palabrasEncontradas = 0, try = 0;
+  }*/
+  background = al_load_bitmap("statics/img/tragamonedas.png");
+  char respuesta[21], **respuestas = NULL;
+  int cantidadLetras = 0, letra, palabrasEncontradas = 0, try = 0;
   respuesta[0] = '\0';
-  indiceEncontradas = malloc(sizeof(int));
   while(pantalla == 4){
-    pantalla4(fuenteRespuesta, indiceEncontradas, palabrasEncontradas, respuesta);
+    pantalla4(fuenteRespuesta, background, respuesta, respuestas, palabrasEncontradas);
 
     al_wait_for_event(eventos, &evento);
     if(evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
       pantalla = 0;
     if(evento.type == ALLEGRO_EVENT_KEY_CHAR && cantidadLetras <= 20){
-      letra = evento.keyboard.keycode;
+      letra = evento.keyboard.unichar;
+      printf("%i %i %s\n", cantidadLetras, evento.keyboard.keycode, respuesta);
       if(isalpha(letra) != 0){
         respuesta[cantidadLetras] = letra;
         respuesta[cantidadLetras + 1] = '\0';
@@ -234,11 +251,10 @@ int main()
       }
       if(letra == ALLEGRO_KEY_ENTER && cantidadLetras > 0){
         try++;
-        tempi = includesc(respuesta, palabras, cantidadPalabras);
-        if(tempi != -1){
-          indiceEncontradas[palabrasEncontradas] = tempi;
+        if(includesc(respuesta, palabras, cantidadPalabras) != -1){
+          respuestas = realloc(respuestas, sizeof(char*) * (palabrasEncontradas+1)); 
+          respuestas[palabrasEncontradas] = mstrdup(respuesta);
           palabrasEncontradas++;
-          indiceEncontradas = realloc(indiceEncontradas, sizeof(int*) * (palabrasEncontradas + 1));
           //MUESTRA BREVEMENTE ALGO QUE DIGA QUE ACERTASTE
         }
         else{
@@ -255,11 +271,13 @@ int main()
   for(int i = 0; i < cantidadPalabras; i++)
     free(palabras[i]);
   free(palabras);
-  free(indiceEncontradas);
+  for(int i = 0; i < palabrasEncontradas; i++)
+    free(respuestas[i]);
+  free(respuestas);
   al_destroy_event_queue(eventos);
   al_destroy_display(disp);
   al_destroy_bitmap(portada);
-  //al_destroy_bitmap(background);
+  al_destroy_bitmap(background);
   //al_destroy_bitmap(assets);
   al_destroy_timer(tempo);
   al_destroy_font(fuenteTexto);
