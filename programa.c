@@ -24,12 +24,11 @@ int includesc(char* str, char** array, int length){
   return -1;
 }
 
-void instrucciones()
+void instrucciones(ALLEGRO_BITMAP *cuadroTexto)
 {
   ALLEGRO_FONT *fuenteChica;
   ALLEGRO_EVENT_QUEUE *colaInstrucciones;
   ALLEGRO_EVENT eventoInstrucciones;
-  ALLEGRO_COLOR negro = al_map_rgb(0, 0, 0);
   ALLEGRO_COLOR blanco = al_map_rgb(255, 255, 255);
   
   colaInstrucciones = al_create_event_queue();
@@ -55,7 +54,8 @@ void instrucciones()
   lineas = split(contenido, "\n", &lineasi);
   while (run)
   {
-    al_draw_filled_rounded_rectangle(270, 210, 1010, 480, 10, 10, negro);
+    //al_draw_filled_rounded_rectangle(270, 210, 1010, 480, 10, 10, negro);
+    al_draw_scaled_bitmap(cuadroTexto, 0, 0, 200, 200, 200, 190, 860, 290, 0);
     for(int i = 0; i < lineasi; i++)
       al_draw_text(fuenteChica, blanco, 290, 220 + 20 * (i + 1), ALLEGRO_ALIGN_LEFT, lineas[i]);
     al_flip_display();
@@ -84,7 +84,7 @@ void pantalla1(ALLEGRO_BITMAP *fondo, ALLEGRO_FONT *font)
   al_flip_display();
 }
 
-void pantalla2(ALLEGRO_FONT *font, ALLEGRO_BITMAP *fondo, ALLEGRO_BITMAP *extra, int x, int y){
+void pantalla2(ALLEGRO_FONT *font, ALLEGRO_BITMAP *fondo, ALLEGRO_BITMAP *extra, ALLEGRO_BITMAP *cuadroTexto,int x, int y){
   ALLEGRO_COLOR negro = al_map_rgb(0, 0, 0);
   ALLEGRO_COLOR blanco = al_map_rgb(255, 255, 255);
 
@@ -95,24 +95,73 @@ void pantalla2(ALLEGRO_FONT *font, ALLEGRO_BITMAP *fondo, ALLEGRO_BITMAP *extra,
   al_draw_text(font, blanco, 640, 334.5, ALLEGRO_ALIGN_CENTER, "Medio");
   al_draw_filled_rounded_rectangle(557.2, 514, 722.8, 617, 10, 10, negro);
   al_draw_text(font, blanco, 640, 540.5, ALLEGRO_ALIGN_CENTER, "Dificil");
-  al_draw_bitmap(extra, x, y, 0);
+  al_draw_scaled_bitmap(extra, 0, 0, al_get_bitmap_width(extra), al_get_bitmap_height(extra), x - 50, y - 50, 225, 200, 0);
   al_flip_display();
 }
 
 void pantalla4(ALLEGRO_FONT *font, ALLEGRO_BITMAP *background, char* respuesta, char** respuestas, int palabras, int palabrasn){
+  ALLEGRO_COLOR negro = al_map_rgb(0, 0, 0);
   int y = (YMAX - 100) / (palabrasn + 1);
+  char intentos[6];
+  sprintf(intentos, "%i/%i", palabras, palabrasn);
   al_clear_to_color(al_map_rgb(255, 255, 255));
   al_draw_bitmap(background, 0, 0, 0);
-  al_draw_filled_rectangle(0, 620, 1280, 720, al_map_rgb(0, 0, 0));
+  al_draw_filled_rectangle(0, 620, 1280, 720, negro);
   al_draw_text(font, al_map_rgb(255, 255, 255), 640, 645, ALLEGRO_ALIGN_CENTER, respuesta);
+  al_draw_text(font, negro, 640, 50, ALLEGRO_ALIGN_CENTER, intentos);
   //Conforme mas adivines, se proyectan las respuestas.
   for(int i = 0; i < palabras; i++){
     if(i < palabras / 2)//<=
-      al_draw_text(font, al_map_rgb(0, 0, 0), 50, y+(y*i*2), ALLEGRO_ALIGN_LEFT, respuestas[i]);
+      al_draw_text(font, negro, 50, y+(y*i*2), ALLEGRO_ALIGN_LEFT, respuestas[i]);
     else
-      al_draw_text(font, al_map_rgb(0, 0, 0), 1230, y+(y*2*(i - palabras / 2)), ALLEGRO_ALIGN_RIGHT, respuestas[i]);
+      al_draw_text(font, negro, 1230, y+(y*2*(i - palabras / 2)), ALLEGRO_ALIGN_RIGHT, respuestas[i]);
   }
   al_flip_display();
+}
+//1 = ganar. 2 = fallo
+void animacionTragamonedas(int opc){
+  ALLEGRO_BITMAP *simbolos = al_load_bitmap("statics/img/slotSpriteSheet.png");
+  ALLEGRO_TIMER *animacion;
+  ALLEGRO_EVENT event;
+  ALLEGRO_EVENT_QUEUE *queue;
+  int run, fotogramas, x = 0, y = 0;
+  run = 1;
+  fotogramas = 0;
+  animacion = al_create_timer(1.0/30);
+  queue = al_create_event_queue();
+  al_register_event_source(queue, al_get_timer_event_source(animacion));
+  al_start_timer(animacion);
+  while (run){
+    al_wait_for_event(queue, &event);
+    if(event.type == ALLEGRO_EVENT_TIMER){
+      if(fotogramas % 4 == 0 && fotogramas != 0){
+        y = 0;
+        x+=65;
+        if(fotogramas % 16 == 0 && fotogramas != 0){
+          x = 0;
+        } 
+      }
+      if(fotogramas == 60 && opc == 1){
+        x = 195;
+        y = 195;
+        run = 0;
+      }
+      if(fotogramas == 60 && opc == 2){
+        x = 195;
+        y = 130;
+        run = 0;
+      }
+    }
+    //al_draw_scaled_bitmap(simbolos, x, y, 65, 65, 342.5, 127.5, 65, 65, 0);
+    al_draw_scaled_bitmap(simbolos, x, y, 65, 65, 500, 250, 100, 100, 0);
+    al_flip_display();
+    fotogramas++;
+    y+=65;
+  }
+  al_rest(0.5);
+  al_destroy_event_queue(queue);
+  al_destroy_timer(animacion);
+  al_destroy_bitmap(simbolos);
 }
 
 char **obtienePalabras(int opc, int *palabrasn){
@@ -191,7 +240,7 @@ int main()
   ALLEGRO_EVENT_QUEUE *eventos;
   ALLEGRO_EVENT evento;
   ALLEGRO_FONT *fuenteTexto, *fuentePalabras, *fuenteRespuesta;
-  ALLEGRO_BITMAP *portada, *assets, *background;
+  ALLEGRO_BITMAP *portada, *assets, *background, *textHolder;
   ALLEGRO_TIMER *tempo;
 
   int pantalla = 1;
@@ -202,6 +251,7 @@ int main()
   al_set_window_title(disp, "Palabras");
 
   portada = al_load_bitmap("statics/img/PORTADA.png");
+  textHolder = al_load_bitmap("statics/img/textholder.png");
 
   fuenteTexto = al_load_ttf_font("statics/fonts/Swansea-q3pd.ttf", 30, 0);
   fuenteRespuesta = al_load_ttf_font("statics/fonts/SwanseaBold-D0ox.ttf", 50, 0);
@@ -222,7 +272,7 @@ int main()
       pantalla = 2;
     if(evento.type == ALLEGRO_EVENT_KEY_CHAR && evento.keyboard.keycode == ALLEGRO_KEY_P)
     {
-      instrucciones();
+      instrucciones(textHolder);
       al_flush_event_queue(eventos);
     }
     al_rest(1.0/30);
@@ -230,11 +280,11 @@ int main()
 
   background = al_load_bitmap("statics/img/bg.png");
   assets = al_load_bitmap("statics/img/flecha.png");
-  int x = 850, y = 308, dificultad, cantidadPalabras;
-  char **palabras;
+  int x = 800, y = 308, dificultad, cantidadPalabras;
+  char **palabras = NULL;
   while (pantalla == 2)
   {
-    pantalla2(fuenteRespuesta, background, assets, x, y);
+    pantalla2(fuenteRespuesta, background, assets, textHolder, x, y);
     al_wait_for_event(eventos, &evento);
     if(evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
       pantalla = 0;
@@ -245,10 +295,10 @@ int main()
     if(evento.type == ALLEGRO_EVENT_KEY_CHAR && evento.keyboard.keycode == ALLEGRO_KEY_Z){
       dificultad = (y + 104) / 206;
       pantalla = 3;
+      palabras = obtienePalabras(dificultad, &cantidadPalabras);
     }
     al_rest(1.0/30);
   }
-  palabras = obtienePalabras(dificultad, &cantidadPalabras);
   
   int palabra = 0;
   tempo = al_create_timer(1.0/dificultad); //Si esta muy facil puede ser al_create_timer(1/ pow(2, dificultad - 1));
@@ -265,12 +315,11 @@ int main()
       pantalla = 0;
     if(evento.type == ALLEGRO_EVENT_TIMER){
       palabra++;
-      if(palabra == cantidadPalabras){
-        al_stop_timer(tempo);
+      if(palabra == cantidadPalabras)
         pantalla = 4;
-      }
     }
   }
+  al_stop_timer(tempo);
 
   for(int i = 0; i < cantidadPalabras; i++)//------------------------------------------------------------------------------
     printf("%s \n", palabras[i]);
@@ -306,29 +355,36 @@ int main()
           respuestas = realloc(respuestas, sizeof(char*) * (palabrasEncontradas+1)); 
           respuestas[palabrasEncontradas] = mstrdup(respuesta);
           palabrasEncontradas++;
-          //MUESTRA BREVEMENTE ALGO QUE DIGA QUE ACERTASTE
+          animacionTragamonedas(1);
+          al_flush_event_queue(eventos);
         }
         else{
           //MUESTRA ALGO QUE DIGA QUE TE EQUIVOCASTE
+          animacionTragamonedas(2);
+          al_flush_event_queue(eventos);
         }
         respuesta[0] = '\0';
         cantidadLetras = 0;
       }
     }
   }
-
+  if(palabras != NULL){
   for(int i = 0; i < cantidadPalabras; i++)
     free(palabras[i]);
   free(palabras);
+  }
+  if(respuestas != NULL){
   for(int i = 0; i < palabrasEncontradas; i++)
     free(respuestas[i]);
   free(respuestas); 
+  }
   al_destroy_event_queue(eventos);
   al_destroy_display(disp);
   al_destroy_timer(tempo);
   al_destroy_bitmap(portada);
   al_destroy_bitmap(background);
   al_destroy_bitmap(assets);
+  al_destroy_bitmap(textHolder);
   al_destroy_font(fuenteTexto);
   al_destroy_font(fuenteRespuesta);
   al_destroy_font(fuentePalabras);

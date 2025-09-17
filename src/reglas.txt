@@ -1,10 +1,10 @@
-Este programa tiene como objetivo ayudar a mejorar la memoria de los alumnos de una manera entretenida
+Este programa tiene como objetivo ayudar a mejorar la memoria de los alumnos de una manera entretenida.
 
-Despues de iniciar y seleccionar la dificultad se mostrara una serie de palabras aleatorias que el alumno
-debera recordar y al final del programa debera escribir todas las palabras que recuerde.
+Después de iniciar la aplicación y seleccionar el nivel de dificultad, se mostrará una serie de palabras
+aleatorias que el alumno deberá memorizar. Al finalizar, el usuario tendrá que escribir todas las palabras que recuerde.
 
-A la hora de escribir las respuestas se solicita que se escriban sin acentos y con buena ortografia (no
-importa si es en mayusculas o minusculas), de lo contrario se tomaran como erroneas. Si la alguna palabra
-tenia un espacio ignorarlo.
+Al momento de ingresar las respuestas, es importante escribirlas sin acentos y con buena ortografía 
+(no importa si se usan mayúsculas o minúsculas). De lo contrario, se considerarán como incorrectas.
+Si alguna palabra original contenía espacios, deben ser omitidos al escribirla.
 
-Suerte :D
+¡Mucha suerte! :D
