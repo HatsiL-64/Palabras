@@ -1,7 +1,8 @@
 Este programa tiene como objetivo ayudar a mejorar la memoria de los alumnos de una manera entretenida.
 
 Después de iniciar la aplicación y seleccionar el nivel de dificultad, se mostrará una serie de palabras
-aleatorias que el alumno deberá memorizar. Al finalizar, el usuario tendrá que escribir todas las palabras que recuerde.
+aleatorias que el alumno deberá memorizar. Al finalizar, el usuario tendrá que escribir todas las palabras 
+que recuerde.
 
 Al momento de ingresar las respuestas, es importante escribirlas sin acentos y con buena ortografía 
 (no importa si se usan mayúsculas o minúsculas). De lo contrario, se considerarán como incorrectas.

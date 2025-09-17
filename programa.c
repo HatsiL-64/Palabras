@@ -118,6 +118,15 @@ void pantalla4(ALLEGRO_FONT *font, ALLEGRO_BITMAP *background, char* respuesta, 
   }
   al_flip_display();
 }
+
+void pantalla5(ALLEGRO_FONT *font, ALLEGRO_BITMAP *rata, int aciertos, int palabras){
+  char resultado[50];
+  sprintf(resultado, "Tuviste %i aciertos de %i", aciertos, palabras);
+  al_clear_to_color(al_map_rgb(0, 0, 0));
+  al_draw_bitmap(rata, 452.5, 100, 0);
+  al_draw_text(font, al_map_rgb(255, 255, 255), 640, 620, ALLEGRO_ALIGN_CENTER, resultado);
+  al_flip_display();
+}
 //1 = ganar. 2 = fallo
 void animacionTragamonedas(int opc){
   ALLEGRO_BITMAP *simbolos = al_load_bitmap("statics/img/slotSpriteSheet.png");
@@ -240,7 +249,7 @@ int main()
   ALLEGRO_EVENT_QUEUE *eventos;
   ALLEGRO_EVENT evento;
   ALLEGRO_FONT *fuenteTexto, *fuentePalabras, *fuenteRespuesta;
-  ALLEGRO_BITMAP *portada, *assets, *background, *textHolder;
+  ALLEGRO_BITMAP *assets, *background, *textHolder;
   ALLEGRO_TIMER *tempo;
 
   int pantalla = 1;
@@ -250,7 +259,7 @@ int main()
   disp = al_create_display(XMAX, YMAX);
   al_set_window_title(disp, "Palabras");
 
-  portada = al_load_bitmap("statics/img/PORTADA.png");
+  background = al_load_bitmap("statics/img/PORTADA.png");
   textHolder = al_load_bitmap("statics/img/textholder.png");
 
   fuenteTexto = al_load_ttf_font("statics/fonts/Swansea-q3pd.ttf", 30, 0);
@@ -263,7 +272,7 @@ int main()
 
   while (pantalla == 1)
   {
-    pantalla1(portada, fuenteTexto);
+    pantalla1(background, fuenteTexto);
 
     al_wait_for_event(eventos, &evento);
     if(evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
@@ -278,6 +287,7 @@ int main()
     al_rest(1.0/30);
   }
 
+  al_destroy_bitmap(background);
   background = al_load_bitmap("statics/img/bg.png");
   assets = al_load_bitmap("statics/img/flecha.png");
   int x = 800, y = 308, dificultad, cantidadPalabras;
@@ -323,19 +333,15 @@ int main()
 
   for(int i = 0; i < cantidadPalabras; i++)//------------------------------------------------------------------------------
     printf("%s \n", palabras[i]);
-  
+  al_destroy_bitmap(background);
   background = al_load_bitmap("statics/img/tragamonedas.png");
   char respuesta[21], **respuestas = NULL;
   int cantidadLetras = 0, letra, palabrasEncontradas = 0, try = 0;
   respuesta[0] = '\0';
   while(pantalla == 4){
-    pantalla4(fuenteRespuesta, background, respuesta, respuestas, palabrasEncontradas, cantidadPalabras);
+    pantalla4(fuenteRespuesta, background, respuesta, respuestas, try, cantidadPalabras);
 
     al_wait_for_event(eventos, &evento);
-    if(try == cantidadPalabras){
-      pantalla = 5;
-      al_rest(1);
-    }
     if(evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
       pantalla = 0;
     if(evento.type == ALLEGRO_EVENT_KEY_CHAR){
@@ -351,7 +357,7 @@ int main()
       }
       if(evento.keyboard.keycode == ALLEGRO_KEY_ENTER && cantidadLetras > 0){
         try++;
-        if(includesc(respuesta, palabras, cantidadPalabras) != -1){
+        if(includesc(respuesta, palabras, cantidadPalabras) != -1 && includesc(respuesta, respuestas, palabrasEncontradas)){
           respuestas = realloc(respuestas, sizeof(char*) * (palabrasEncontradas+1)); 
           respuestas[palabrasEncontradas] = mstrdup(respuesta);
           palabrasEncontradas++;
@@ -367,6 +373,30 @@ int main()
         cantidadLetras = 0;
       }
     }
+    if(try == cantidadPalabras){
+      pantalla = 5;
+      al_rest(1);
+    }
+  }
+
+  int imagen = rand() % 3 + 1;
+  al_destroy_bitmap(assets);
+  if(imagen == 1)
+    assets = al_load_bitmap("statics/img/h.png");
+  if(imagen == 2)
+    assets = al_load_bitmap("statics/img/hugo.png");
+  if(imagen == 3)
+    assets = al_load_bitmap("statics/img/m.png");
+  while(pantalla == 5){
+    pantalla5(fuenteRespuesta, assets, palabrasEncontradas, cantidadPalabras);
+    
+    al_wait_for_event(eventos, &evento);
+    if(evento.type == ALLEGRO_EVENT_KEY_CHAR && evento.keyboard.keycode == ALLEGRO_KEY_E){
+      pantalla = 6;
+    }
+    if(evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
+      pantalla = 6;
+    }
   }
   if(palabras != NULL){
   for(int i = 0; i < cantidadPalabras; i++)
@@ -381,7 +411,6 @@ int main()
   al_destroy_event_queue(eventos);
   al_destroy_display(disp);
   al_destroy_timer(tempo);
-  al_destroy_bitmap(portada);
   al_destroy_bitmap(background);
   al_destroy_bitmap(assets);
   al_destroy_bitmap(textHolder);
