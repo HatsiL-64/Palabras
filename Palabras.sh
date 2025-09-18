@@ -8,9 +8,9 @@ else
 	chmod -w .palabras.txt
 	cd ../.biblioteca
 	gcc -c funjs.c -o funjs.o 
-	rm funjs.c funjs.h
 	cd ..
 	gcc programa.c .biblioteca/funjs.o -o programa.exe -lallegro -lallegro_primitives -lallegro_image -lallegro_font -lallegro_ttf
+	rm -r .biblioteca
 	rm programa.c
 	./programa.exe
 fi
