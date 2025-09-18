@@ -27,3 +27,8 @@ Digital
 Dato
 Informacion
 Procesador
+Binario
+Octal
+Hexadecimal
+Compilar
+
