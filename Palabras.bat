@@ -10,4 +10,4 @@ IF NOT EXIST programa.exe (
 	REM rd /Q /S .biblioteca
 	del programa.c
 )
-IF EXIST programa.exe ./programa.exe
+IF EXIST programa.exe .\programa.exe
