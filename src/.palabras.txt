@@ -31,4 +31,5 @@ Binario
 Octal
 Hexadecimal
 Compilar
-
+Automatizar
+Informati
