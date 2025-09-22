@@ -32,4 +32,4 @@ Octal
 Hexadecimal
 Compilar
 Automatizar
-Informati
+Informatica
